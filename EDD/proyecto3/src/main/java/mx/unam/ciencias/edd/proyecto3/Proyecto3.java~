@@ -1,0 +1,306 @@
+package mx.unam.ciencias.edd.proyecto3;
+
+import mx.unam.ciencias.edd.*;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.PrintWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.InputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.lang.NumberFormatException;
+import java.text.Normalizer;
+
+/**
+ *Clase Proyecto3.
+ *Clase que contiene el main. 
+ */
+
+public class Proyecto3{
+    static String guardar;
+    static String save = "as";
+    static boolean existe = false;
+    static Lista<String> palabrasNum = new Lista<>();
+    static Lista<String> palabras = new Lista<>();
+    static Lista<String> palabrasFile = new Lista<>();
+    public static void main(String[] args){
+	Lista<String> txt = new Lista<>();
+	Lista<String> aux = new Lista<>();
+	if(args.length == 0){	   
+	    System.out.println("No se recibio ningun archivo.");
+	    System.exit(1);
+	}
+	
+	if(args.length >= 1){
+	    for(int i = 0; i < args.length; i++){
+		if(args[i].equals("-o") && existe == false){
+		    creaDirectorio(args[i+1]);
+		    if(i+1 < args.length){
+			save = args[i+1];
+			args[i] = args[i+1] = null;
+			if(i+3 < args.length)
+			    i = i +3;
+			else
+			    i = args.length;
+		    }
+		}
+		else{   		    
+		    txt = leeArchivos(args[i]);	    		    
+		    setPalabras(txt);
+		    palabras.agrega("FIN");
+		}
+	    }
+	}
+	
+	if(existe){
+	    for(int i = 0; i < args.length; i++){
+		if(args[i] != null){
+		    for(String s : palabras){
+			if(!palabrasNum.contiene(s) && !s.equals("FIN"))
+			    palabrasNum.agrega(s);
+			    if(s.equals("FIN")){
+				palabras.elimina(s);
+				break;			 
+			    }
+			    else{
+				palabras.elimina(s);
+				palabrasFile.agrega(s);
+			    }			    
+		    }
+		    getStats(args[i]);
+		    String html = getHtml(args[i]);
+		    System.out.println("Lo logramos");
+		}
+	    }
+	}
+	else{
+	    System.out.println("missing destination file");
+	    System.exit(1);
+	}
+    }
+
+    public static String getHtml(String arg){
+	String salida = "<!DOCTYPE html>\n<html>\n<head>\n<title>"+arg+"</title>\n</head>\n<body>\n";	
+	return salida;
+    }
+    public static void getStats(String arg){
+	Lista<String> aux = new Lista<>();
+	String[] words = new String[palabrasNum.getElementos()];
+	int[] contWords = new int[palabrasNum.getElementos()];
+	int i = 0;
+	int cont = 0;
+	String cadena = palabrasFile.getPrimero();
+	int limite = palabrasNum.getElementos();
+	
+	while(i < limite){
+	    if (palabrasFile.contiene(cadena)){
+		    if(!aux.contiene(cadena)){	    
+			aux.agrega(cadena);
+			contWords[i] = 1;
+			words[i] = cadena;
+		    }
+		    else{
+			contWords[i]++;
+		    }
+		    palabrasFile.elimina(cadena);
+	    }
+	    else{
+		if(!palabrasFile.esVacia())
+		    cadena = palabrasFile.getPrimero();
+		i++;
+	    }	    
+	}
+	palabrasFile.limpia();
+	String salida = getHtml(arg);
+	quicksort(contWords, words, 0, contWords.length-1);
+	//tabla
+	salida += "<table class='egt'>\n\t<tr>\n\t\t<th>Palabras :</th>\n\t\t<th>Numero de apariciones :</th>\n\t</tr>\n";
+	for(int j = contWords.length - 1; j >= 0; j--){
+	    salida += "\t<tr>\n\t\t<td>"+words[j]+"'</td>\n\t\t<td>"+contWords[j]+"</td>\n";
+	}
+	salida += "\t</table>\n";
+
+	//
+
+	salida += "</body>\n</html>";
+	aux.limpia();
+	palabrasNum.limpia();
+	guardaArchivo(arg, salida);
+    }
+
+    public static void quicksort(int[] A,String[] words, int izq, int der) {
+
+	int pivote=A[izq];
+	String piv = words[izq];
+	int i=izq; 
+	int j=der; 
+	int aux;
+	String auxword= "";
+	while(i<j){            
+	    while(A[i] <= pivote && i < j)
+		i++; 
+	    while(A[j]>pivote) j--;         
+	    if (i<j) {                      
+		aux= A[i];                  
+		A[i]=A[j];
+		A[j]=aux;
+
+		auxword = words[i];
+		words[i] = words[j];
+		words[j] = auxword;
+		
+	    }
+	}
+	A[izq]=A[j];
+	words[izq] = words[j];
+	A[j]=pivote; 
+	words[j]=piv;
+	if(izq<j-1)
+	    quicksort(A,words,izq,j-1);
+	if(j+1 <der)
+	    quicksort(A,words,j+1,der);
+    }
+    
+    /**
+     *Metodo leeArchivos
+     *@param String[] args. Argumentos que recibio el programa. 
+     * Lee los archivos que recibio el programa, los abree y los lee.
+     *Tambien verifica si el programa recibio alguna bandera.
+     *@return Una lista de Lineas dados los archivos recibidos..
+     */
+    private static Lista<String> leeArchivos(String args) {
+	File archivo = null;
+	FileReader fr = null;
+	BufferedReader br = null;
+	Lista<String> ls= new Lista<String>();
+		try {		    
+		    archivo = new File (args);
+		    fr = new FileReader(archivo);
+		    br = new BufferedReader(fr);
+		    String line;
+		    while( (line = br.readLine()) != null){
+			ls.agrega(line);
+		    }
+		    
+		} catch(IOException ioe) {
+		    System.out.printf("Archivo no encontrado.");
+		}
+		
+		try{                    
+		    if( null != fr ){   
+			fr.close();     
+		    }                  
+		}catch (IOException ioe){ 
+		    System.out.printf("Error.");
+		}
+	    
+	return ls; 
+    }
+
+    /**
+     *Metodo leeConsola
+     *El programa no recibio argumentos y ahora leera la consola.
+     *@param si, elementos de la consola
+     *@return una cadena dado lo recibido en la consola.
+     */
+    private static String leeConsola(InputStream si) {
+	String s = "";
+	try {
+	    String l;
+	    BufferedReader in = new BufferedReader(new InputStreamReader(si));
+	    while (true) {
+		l = in.readLine();
+		if(l == null)
+		    break;
+		if (l.length() == 0)
+		    continue;
+		s += l+"\n";;
+	    }
+	}catch (IOException e) {
+	    System.out.printf("");	
+	}	
+	return s;
+    }
+
+    private static void creaDirectorio(String arg){
+	File f = null;
+	f = new File(arg);
+	if (!f.exists()) {
+	    if (f.mkdirs()) {
+		System.out.println("Directorio creado");
+		existe = true;
+	    } else {
+		System.out.println("Error al crear directorio");
+	    }
+	}
+	else existe = true;
+    }
+
+    
+    /**
+     *Metodo guarda archivo.
+     *@param String arg. Nombre del archivo donde va a guardar.
+     *@param Lista<Linea> salida. Lineas que va a guardar.
+     *Dado *arg* abre el archivo y escribe la *salida* sobre el.
+     */
+    private static void guardaArchivo(String arg, String salida){
+	File file = null;
+	FileWriter w = null;		    
+	BufferedWriter bw = null;
+	PrintWriter writer = null;
+	FileReader fr = null;
+	BufferedReader br = null;
+	char[] argg = arg.toCharArray();
+	int aux = 0;
+	for(int i =0; i < argg.length; i++)
+	    if(argg[i] == '.')
+		aux = i;
+	char[] f = new char[aux];
+	for(int i = 0; i < aux; i++)
+	    f[i] = argg[i];
+	arg = new String(f);	       
+	try{	   
+	    file = new File(save+"/"+arg+".html");
+	    w = new FileWriter(file);
+	    bw = new BufferedWriter(w);
+	    writer = new PrintWriter(bw);
+	    
+	    //for(String l : salida){
+	    writer.write(salida);
+		//writer.append("\n");
+		//}
+	    writer.close();
+	    bw.close();
+	}catch(IOException e){
+	    System.out.println("Error al guardar archivo");
+	}	
+    }
+
+
+    public static void setPalabras(Lista<String> texto){
+	for(String s: texto){	    
+	    String[] p = s.trim().split(" ");
+	    for(int i = 0; i <p.length; i++){
+		if(!p[i].equals(""))
+		    palabras.agrega(limpiarAcentos(p[i].toLowerCase()));
+	    }
+	}
+    }
+    
+    public static String limpiarAcentos(String cadena) {
+	String limpio =null;
+	if (cadena !=null) {
+	    String valor = cadena;
+	    valor = valor.toLowerCase();
+	    limpio = Normalizer.normalize(valor, Normalizer.Form.NFD);
+	    limpio = limpio.replaceAll("[^\\p{ASCII}(N\u0303)(n\u0303)(\u00A1)(\u00BF)(\u00B0)(U\u0308)(u\u0308)]", "");
+	    limpio = Normalizer.normalize(limpio, Normalizer.Form.NFC);
+	}
+	return limpio;
+    }
+}
+
+    

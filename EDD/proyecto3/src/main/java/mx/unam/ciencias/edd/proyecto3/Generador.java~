@@ -1,0 +1,12 @@
+package mx.unam.ciencias.edd.proyecto3;
+
+public class Generador{
+    public Lista<String> setPalabras(Lista<String> texto){
+	Lista<String> palabras = new Lista<>();
+	for(String s: texto){
+	    int i = 0;
+	    int aux = 0;
+	    char[] palabra = s.toCharArray();
+	}
+    }
+}
