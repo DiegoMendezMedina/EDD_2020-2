@@ -1,9 +1,7 @@
 Estructuras de Datos
-Proyecto 1 Ordenador Lexicográfico
-Fecha de entrega: martes 27 de marzo, 2020
+Proyecto 2 Graficador
 
 Instrucciones para ejecutar el prgrama 
-
 
 $ mvn install 
 ...
