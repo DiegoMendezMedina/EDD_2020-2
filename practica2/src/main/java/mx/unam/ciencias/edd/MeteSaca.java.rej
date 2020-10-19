@@ -1,0 +1,58 @@
+--- src/main/java/mx/unam/ciencias/edd/MeteSaca.java
++++ src/main/java/mx/unam/ciencias/edd/MeteSaca.java
+@@ -23,6 +23,7 @@ public abstract class MeteSaca<T> {
+          */
+         public Nodo(T elemento) {
+             // Aquí va su código.
++	    this.elemento=elemento;
+         }
+     }
+ 
+@@ -44,6 +45,14 @@ public abstract class MeteSaca<T> {
+      */
+     public T saca() {
+         // Aquí va su código.
++	if(cabeza==null)
++	    throw new NoSuchElementException ("Estructura vacia");
++	Nodo aux=cabeza;	
++	if(cabeza==rabo)
++	    cabeza=rabo=null;
++	else
++	    cabeza=cabeza.siguiente;
++	return aux.elemento;
+     }
+ 
+     /**
+@@ -54,6 +63,9 @@ public abstract class MeteSaca<T> {
+      */
+     public T mira() {
+         // Aquí va su código.
++	if(cabeza==null)
++	    throw new NoSuchElementException("Estructura vacia");
++	return cabeza.elemento;
+     }
+ 
+     /**
+@@ -63,6 +75,7 @@ public abstract class MeteSaca<T> {
+      */
+     public boolean esVacia() {
+         // Aquí va su código.
++	return cabeza==null;
+     }
+ 
+     /**
+@@ -77,5 +90,14 @@ public abstract class MeteSaca<T> {
+             return false;
+         @SuppressWarnings("unchecked") MeteSaca<T> m = (MeteSaca<T>)object;
+         // Aquí va su código.
++	Nodo thiis=this.cabeza;
++	Nodo thaat=m.cabeza;
++	while(thiis!=null && thaat!=null){
++	    if(!thiis.elemento.equals(thaat.elemento))
++		return false;
++	    thiis=thiis.siguiente;
++	    thaat=thaat.siguiente;
++	}	
++	return thiis==thaat;
+     }
+ }
